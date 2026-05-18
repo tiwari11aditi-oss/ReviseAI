@@ -23,6 +23,9 @@ except ImportError:
     docx = None
 
 app = Flask(__name__)
+@app.route('/')
+def home():
+    return render_template('index.html')
 CORS(app)
 
 # Load environment variables
