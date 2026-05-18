@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReviseAI - Upload & Revise</title>
+    <!-- Modern Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        // Restrict access
+        if (!localStorage.getItem('token')) {
+            window.location.href = 'login.html';
+        }
+    </script>
+</head>
+<body>
+    <div class="layout-wrapper">
+        <!-- History Sidebar Drawer (now a fixed panel on desktop) -->
+        <aside id="history-sidebar" class="glass sidebar-open">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
+                <h3 style="color:#ffffff; font-size: 18px; display:flex; align-items:center; gap:8px;">
+                    <i data-lucide="activity"></i> Sessions
+                </h3>
+                <button id="close-history-btn" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.6);"><i data-lucide="chevron-left"></i></button>
+            </div>
+            
+            <button id="new-chat-btn" style="width:100%; margin-bottom: 16px; padding: 12px; border-radius: 12px; background:rgba(124, 168, 255, 0.2); border:1px solid rgba(124, 168, 255, 0.4); color:#7ca8ff; font-weight:600; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:8px; transition: all 0.3s;">
+                <i data-lucide="plus-circle" style="width:16px;height:16px;"></i> New Chat
+            </button>
+            
+            <div id="history-list" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; padding-right:8px;">
+                <!-- Dynamically loaded history cards go here -->
+            </div>
+            
+            <button id="sidebar-logout-btn" style="margin-top:20px; width:100%; padding: 14px; border-radius: 14px; background:rgba(255,107,107,0.1); border:1px solid rgba(255,107,107,0.3); color:#ff9e9e; font-weight:600; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:8px; transition: all 0.3s;">
+                <i data-lucide="log-out" style="width:18px;height:18px;"></i> Sign Out
+            </button>
+        </aside>
+
+        <!-- Main App Container -->
+        <div class="app-container glass">
+            
+            <!-- Header -->
+            <header class="glass-header">
+                <!-- Left action (History Toggle) -->
+                <button id="history-toggle-btn" title="View History">
+                    <i data-lucide="menu"></i>
+                </button>
+                
+                <div class="logo">
+                    ReviseAI
+                </div>
+                
+                <!-- Right action -->
+                <button class="header-upload-btn" onclick="document.getElementById('file-upload').click()">
+                    <i data-lucide="upload-cloud"></i>
+                </button>
+                <input type="file" id="file-upload" style="display: none;" accept=".txt,.pdf,.docx,.doc">
+            </header>
+
+            <!-- Main Chat Interface -->
+            <main class="chat-container">
+                <div class="messages" id="chat-messages">
+                    <!-- Mascot / Welcome Space -->
+                    <div style="display:flex; justify-content:center; align-items:center; flex-direction:column; margin-bottom: 30px; margin-top: 12px; color: rgba(255,255,255,0.7);">
+                        <div style="background:rgba(255,255,255,0.1); padding:20px; border-radius:50%; margin-bottom:12px; box-shadow:0 0 20px rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);">
+                            <i data-lucide="layers" style="width: 50px; height: 50px; color:#fff;"></i>
+                        </div>
+                    </div>
+                
+                    <div class="message ai-message">
+                        <div class="content">
+                            <p id="greeting-text">Greetings, human!</p>
+                        </div>
+                    </div>
+                    
+                    <div class="message ai-message">
+                        <div class="content">
+                            <p>I'm ReviseAI, a friendly tutor who can help you study your syllabus, summarize notes, and listen to your recitation.</p>
+                        </div>
+                    </div>
+
+                    <div class="message ai-message">
+                        <div class="content">
+                            <p>Where should we start?</p>
+                            
+                            <div class="upload-area" onclick="document.getElementById('file-upload').click()">
+                                <i data-lucide="file-up" style="width: 36px; height: 36px; color: #fff; margin-bottom: 12px; display:inline-block;"></i>
+                                <p style="color: #fff; font-weight: 600; font-size:16px;">Upload Syllabus</p>
+                                <p style="font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 6px;">.PDF, .DOCX, .TXT</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Mock Option Buttons -->
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:12px; margin-top:20px;">
+                        <button class="suggestion-bubble survival-trigger" style="border-color: #ff6b6b; color: #ff6b6b; font-weight: 600;">Enter Survival Mode 🔥</button>
+                        <button class="suggestion-bubble">What can you do, ReviseAI?</button>
+                        <button class="suggestion-bubble">Help me practice reciting 🗣️</button>
+                        <button class="suggestion-bubble">Quiz me on my notes 📝</button>
+                    </div>
+                </div>
+                
+                <!-- Real-time transcription area -->
+                <div class="transcription-panel" id="transcription-panel" style="display: none;">
+                    <h4>Live Analysis</h4>
+                    <div class="transcript-text" id="live-transcript">Listening...</div>
+                    <div class="hesitation-alert" id="hesitation-alert">
+                        <i data-lucide="alert-triangle"></i> Hesitation Detected!
+                    </div>
+                </div>
+            </main>
+
+            <!-- Input Area / Keypad -->
+            <footer class="glass-footer">
+                <div class="chat-input-row">
+                    <button id="mic-btn" class="mic-btn disabled" disabled>
+                        <i data-lucide="mic" id="mic-icon" style="width: 22px; height: 22px;"></i>
+                    </button>
+                    <form id="chat-form">
+                        <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off">
+                        <button type="submit" id="send-btn">
+                            <i data-lucide="send" style="width: 18px; height: 18px;"></i>
+                        </button>
+                    </form>
+                </div>
+                <div class="mic-status" id="mic-status">Upload a syllabus first...</div>
+            </footer>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
