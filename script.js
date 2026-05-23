@@ -1,6 +1,8 @@
 // Initialize Lucide icons
 lucide.createIcons();
 
+const API_BASE_URL = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') ? 'http://127.0.0.1:5000' : '';
+
 // Custom greeting assignment
 document.addEventListener('DOMContentLoaded', () => {
     updateGreeting();
@@ -122,7 +124,7 @@ if (newChatBtn) {
 async function loadHistory() {
     historyList.innerHTML = `<div style="text-align:center; padding: 20px;"><span class="loading-spinner"></span></div>`;
     try {
-        const response = await fetch("http://127.0.0.1:5000/api/history", {
+        const response = await fetch(`${API_BASE_URL}/api/history`, {
             headers: { "Authorization": `Bearer ${localStorage.getItem('token')}` }
         });
         const data = await response.json();
@@ -181,7 +183,7 @@ async function loadSession(sessionId) {
     }
 
     try {
-        const response = await fetch(`http://127.0.0.1:5000/api/history/${sessionId}`, {
+        const response = await fetch(`${API_BASE_URL}/api/history/${sessionId}`, {
             headers: { "Authorization": `Bearer ${localStorage.getItem('token')}` }
         });
         const data = await response.json();
@@ -282,7 +284,7 @@ chatForm.addEventListener('submit', (e) => {
         lucide.createIcons();
         
         // Also send this constraint to the backend so the AI remembers it in history
-        fetch("http://127.0.0.1:5000/api/chat", {
+        fetch(`${API_BASE_URL}/api/chat`, {
             method: "POST",
             headers: { 
                 "Content-Type": "application/json",
@@ -300,7 +302,7 @@ chatForm.addEventListener('submit', (e) => {
     const typingId = 'typing-' + Date.now();
     addMessageHTML(`<div id="${typingId}" style="display:flex; align-items:center; height:20px;"><span class="loading-spinner" style="width:14px; height:14px; border-width:2px; margin:0;"></span></div>`, 'ai');
 
-    fetch("http://127.0.0.1:5000/api/chat", {
+    fetch(`${API_BASE_URL}/api/chat`, {
         method: "POST",
         headers: { 
             "Content-Type": "application/json",
@@ -369,7 +371,7 @@ function handleFileUpload(file) {
         formData.append("mode", "survival");
     }
 
-    fetch("http://127.0.0.1:5000/api/analyze", {
+    fetch(`${API_BASE_URL}/api/analyze`, {
         method: "POST",
         headers: {
             "Authorization": `Bearer ${localStorage.getItem('token')}`
@@ -466,7 +468,7 @@ function respondToRevision(userText) {
     const loadingId = 'loading-eval-' + Date.now();
     addMessageHTML(`<div id="${loadingId}" style="display:flex; align-items:center; height:20px;"><span class="loading-spinner" style="width:14px; height:14px; border-width:2px; margin:0;"></span> &nbsp;Evaluating relevance to notes...</div>`, 'ai');
 
-    fetch("http://127.0.0.1:5000/api/evaluate", {
+    fetch(`${API_BASE_URL}/api/evaluate`, {
         method: "POST",
         headers: { 
             "Content-Type": "application/json",
