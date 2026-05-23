@@ -6,7 +6,7 @@ import time
 import json
 from functools import wraps
 
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import google.generativeai as genai
@@ -22,14 +22,28 @@ try:
 except ImportError:
     docx = None
 
-app = Flask(__name__)
-@app.route('/')
-def home():
-    return render_template('index.html')
+app = Flask(__name__, static_folder='.')
 CORS(app)
+
+# Serve the frontend files
+@app.route('/')
+def serve_root():
+    return send_from_directory('.', 'login.html')
+
+@app.route('/<path:path>')
+def serve_static(path):
+    if os.path.exists(os.path.join('.', path)):
+        return send_from_directory('.', path)
+    return send_from_directory('.', 'login.html')
 
 # Load environment variables
 def load_env():
+    # First check os.environ (for deployed environments like Render)
+    api_key = os.environ.get('GEMINI_API_KEY')
+    if api_key:
+        return api_key
+        
+    # Fallback to local 'env' file
     env_path = os.path.join(os.path.dirname(__file__), 'env')
     if os.path.exists(env_path):
         with open(env_path, 'r') as f:
@@ -44,7 +58,7 @@ api_key = load_env()
 if api_key:
     genai.configure(api_key=api_key)
 else:
-    print("WARNING: GEMINI_API_KEY not found in 'env' file. AI features will not work.")
+    print("WARNING: GEMINI_API_KEY not found in environment or 'env' file. AI features will not work.")
 
 # Configure Gemini model
 system_instruction = """
@@ -470,8 +484,5 @@ def evaluate(username):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-import os
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
